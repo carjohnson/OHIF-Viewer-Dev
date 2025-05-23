@@ -1,5 +1,5 @@
 import { id } from './id';
-import MathSidePanelComponent from './MathSidePanelComponent';
+import WebQuizSidePanelComponent from './WebQuizSidePanelComponent';
 
 /**
  * You can remove any of the following modules if you don't need them.
@@ -27,11 +27,11 @@ export default {
   getPanelModule: ({ servicesManager, commandsManager, extensionManager }) => {
     return [
       {
-        name: "math",
-        iconname: "logo-ohif-small",
-        iconlabel: "Math",
-        label: "Math",
-        component: MathSidePanelComponent
+        name: "webquiz",
+        iconname: "BainesLogo",
+        iconlabel: "",
+        label: "Web Quiz",
+        component: WebQuizSidePanelComponent
       }
     ]
   },

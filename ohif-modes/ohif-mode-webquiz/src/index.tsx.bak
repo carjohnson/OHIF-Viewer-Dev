@@ -157,16 +157,11 @@ function modeFactory({ modeConfiguration }) {
             id: ohif.layout,
             props: {
               leftPanels: [ohif.leftPanel],
-              leftPanelResizable: true,
-              rightPanels: [ 'ohif-extension-webquiz.panelModule.webquiz', segmentation.panelTool, ohif.rightPanel],
+              rightPanels: ['ohif-extension-webquiz.panelModule.webquiz', ohif.rightPanel],
               viewports: [
                 {
                   namespace: cornerstone.viewport,
                   displaySetsToDisplay: [ohif.sopClassHandler],
-                },
-                {
-                  namespace: segmentation.viewport,
-                  displaySetsToDisplay: [segmentation.sopClassHandler],
                 },
               ],
             },
