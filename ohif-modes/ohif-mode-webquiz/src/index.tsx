@@ -1,8 +1,8 @@
+import i18n from 'i18next';
+import { id } from './id';
+import initToolGroups from './initToolGroups';
 import toolbarButtons from './toolbarButtons';
 import { hotkeys } from '@ohif/core';
-import { id } from './id';
-import i18n from 'i18next';
-import initToolGroups from './initToolGroups';
 
 const configs = {
   Length: {},
@@ -11,14 +11,13 @@ const configs = {
 const ohif = {
   layout: '@ohif/extension-default.layoutTemplateModule.viewerLayout',
   sopClassHandler: '@ohif/extension-default.sopClassHandlerModule.stack',
+  thumbnailList: '@ohif/extension-default.panelModule.seriesList',
   hangingProtocol: '@ohif/extension-default.hangingProtocolModule.default',
-  leftPanel: '@ohif/extension-default.panelModule.seriesList',
-  // rightPanel: '@ohif/extension-cornerstone.panelModule.panelMeasurement',
 };
 
 const cornerstone = {
-  segpanel: '@ohif/extension-cornerstone.panelModule.panelSegmentation',
   measurements: '@ohif/extension-cornerstone.panelModule.panelMeasurement',
+  segmentation: '@ohif/extension-cornerstone.panelModule.panelSegmentation',
   viewport: '@ohif/extension-cornerstone.viewportModule.cornerstone',
 };
 
@@ -34,8 +33,8 @@ function modeFactory({ modeConfiguration }) {
     routeName: 'webquiz',
     displayName: 'WebQuiz Mode',
 
-    onModeEnter:({servicesManager, extensionManager }: withAppTypes) => {
-      const { measurementService, toolbarService, toolGroupService } =
+    onModeEnter:({servicesManager, extensionManager, commandsManager }: withAppTypes) => {
+      const { measurementService, toolbarService, toolGroupService, customizationService } =
         servicesManager.services;
 
       measurementService.clearMeasurements();
@@ -43,6 +42,57 @@ function modeFactory({ modeConfiguration }) {
       // Init Default and SR ToolGroups
       initToolGroups(extensionManager, toolGroupService, commandsManager);
 
+      // const utilityModule = extensionManager.getModuleEntry(
+      //   '@ohif/extension-cornerstone.utilityModule.tools'
+      // );
+
+      // const { toolNames, Enums } = utilityModule.exports;
+
+      // const tools = {
+      //   active: [
+      //     {
+      //       toolName: toolNames.WindowLevel,
+      //       bindings: [{ mouseButton: Enums.MouseBindings.Primary }],
+      //     },
+      //     {
+      //       toolName: toolNames.Pan,
+      //       bindings: [{ mouseButton: Enums.MouseBindings.Auxiliary }],
+      //     },
+      //     {
+      //       toolName: toolNames.Zoom,
+      //       bindings: [{ mouseButton: Enums.MouseBindings.Secondary }],
+      //     },
+      //     {
+      //       toolName: toolNames.StackScroll,
+      //       bindings: [{ mouseButton: Enums.MouseBindings.Wheel }],
+      //     },
+      //   ],
+      //   passive: [
+      //     { toolName: toolNames.Length },
+      //     { toolName: toolNames.Bidirectional },
+      //     { toolName: toolNames.Probe },
+      //     { toolName: toolNames.EllipticalROI },
+      //     { toolName: toolNames.CircleROI },
+      //     { toolName: toolNames.RectangleROI },
+      //     { toolName: toolNames.StackScroll },
+      //     { toolName: toolNames.CalibrationLine },
+      //   ],
+      //   // enabled
+      //   enabled: [{ toolName: toolNames.ImageOverlayViewer }],
+      //   // disabled
+      // };
+
+      // toolGroupService.createToolGroupAndAddTools('default', tools);
+
+      // toolbarService.register(toolbarButtons);
+      // toolbarService.updateSection('primary', [
+      //   'MeasurementTools',
+      //   'Zoom',
+      //   'WindowLevel',
+      //   'Pan',
+      //   'Layout',
+      //   'MoreTools',
+      // ]);
     
     },
 
@@ -81,9 +131,9 @@ function modeFactory({ modeConfiguration }) {
           return {
             id: ohif.layout,
             props: {
-              leftPanels: [ohif.leftPanel],
+              leftPanels: [ohif.thumbnailList],
               leftPanelResizable: true,
-              rightPanels: [ 'ohif-extension-webquiz.panelModule.webquiz', cornerstone.measurements, cornerstone.segpanel],
+              rightPanels: [ 'ohif-extension-webquiz.panelModule.webquiz', cornerstone.measurements, cornerstone.segmentation],
               viewports: [
                 {
                   namespace: cornerstone.viewport,
