@@ -17,13 +17,25 @@ const ohif = {
 
 const cornerstone = {
   measurements: '@ohif/extension-cornerstone.panelModule.panelMeasurement',
-  segmentation: '@ohif/extension-cornerstone.panelModule.panelSegmentation',
+  segmentation: '@ohif/extension-cornerstone.panelModule.panelSegmentationWithTools',
   viewport: '@ohif/extension-cornerstone.viewportModule.cornerstone',
+};
+
+const segmentation = {
+  sopClassHandler: '@ohif/extension-cornerstone-dicom-seg.sopClassHandlerModule.dicom-seg',
+  viewport: '@ohif/extension-cornerstone-dicom-seg.viewportModule.dicom-seg',
+};
+
+const dicomRT = {
+  viewport: '@ohif/extension-cornerstone-dicom-rt.viewportModule.dicom-rt',
+  sopClassHandler: '@ohif/extension-cornerstone-dicom-rt.sopClassHandlerModule.dicom-rt',
 };
 
 const extensionDependencies = {
   '@ohif/extension-default': '^3.0.0',
   '@ohif/extension-cornerstone': '^3.0.0',
+  '@ohif/extension-cornerstone-dicom-seg': '^3.0.0',
+  '@ohif/extension-cornerstone-dicom-rt': '^3.0.0',
   'ohif-extension-webquiz': '0/0/1',
 };
 
@@ -117,9 +129,27 @@ function modeFactory({ modeConfiguration }) {
 
       customizationService.setCustomizations({
         'panelSegmentation.disableEditing': {
-          $set: true,
+          $set: false,
         },
       });
+
+      // segmentation tools
+      toolbarService.updateSection(toolbarService.sections.segmentationToolbox, [
+        'SegmentationUtilities',
+        'SegmentationTools',
+      ]);
+      toolbarService.updateSection('SegmentationUtilities', [
+        'LabelmapSlicePropagation',
+        'InterpolateLabelmap',
+        'SegmentBidirectional',
+      ]);
+      toolbarService.updateSection('SegmentationTools', [
+        'BrushTools',
+        'MarkerLabelmap',
+        'RegionSegmentPlus',
+        'Shapes',
+      ]);
+      toolbarService.updateSection('BrushTools', ['Brush', 'Eraser', 'Threshold']);
 
     
     },
@@ -145,14 +175,44 @@ function modeFactory({ modeConfiguration }) {
       study: [],
       series: [],
     },
+    // /**
+    //  * A boolean return value that indicates whether the mode is valid for the
+    //  * modalities of the selected studies. For instance a PET/CT mode should be
+    //  */
+    // isValidMode: ({ modalities }) => {
+    //   return { valid: true };
+    // },
     /**
      * A boolean return value that indicates whether the mode is valid for the
-     * modalities of the selected studies. For instance a PET/CT mode should be
+     * modalities of the selected studies. Currently we don't have stack viewport
+     * segmentations and we should exclude them
      */
     isValidMode: ({ modalities }) => {
-      return { valid: true };
+      // Don't show the mode if the selected studies have only one modality
+      // that is not supported by the mode
+      const modalitiesArray = modalities.split('\\');
+      return {
+        valid:
+          modalitiesArray.length === 1
+            ? !['SM', 'ECG', 'OT', 'DOC'].includes(modalitiesArray[0])
+            : true,
+        description:
+          'The mode does not support studies that ONLY include the following modalities: SM, OT, DOC',
+      };
     },
-    routes: [
+    /**
+     * Mode Routes are used to define the mode's behavior. A list of Mode Route
+     * that includes the mode's path and the layout to be used. The layout will
+     * include the components that are used in the layout. For instance, if the
+     * default layoutTemplate is used (id: '@ohif/extension-default.layoutTemplateModule.viewerLayout')
+     * it will include the leftPanels, rightPanels, and viewports. However, if
+     * you define another layoutTemplate that includes a Footer for instance,
+     * you should provide the Footer component here too. Note: We use Strings
+     * to reference the component's ID as they are registered in the internal
+     * ExtensionManager. The template for the string is:
+     * `${extensionId}.{moduleType}.${componentId}`.
+     */
+      routes: [
       {
         path: 'webquiz',
         layoutTemplate: ({ location, servicesManager }) => {
@@ -162,20 +222,32 @@ function modeFactory({ modeConfiguration }) {
               leftPanels: [ohif.thumbnailList],
               leftPanelResizable: true,
               rightPanels: [ 'ohif-extension-webquiz.panelModule.webquiz', cornerstone.measurements, cornerstone.segmentation],
+              rightPanelResizable: true,
               viewports: [
                 {
                   namespace: cornerstone.viewport,
                   displaySetsToDisplay: [ohif.sopClassHandler],
                 },
-              ],
+                {
+                  namespace: segmentation.viewport,
+                  displaySetsToDisplay: [segmentation.sopClassHandler],
+                },
+                {
+                  namespace: dicomRT.viewport,
+                  displaySetsToDisplay: [dicomRT.sopClassHandler],
+                },              ],
             },
           };
         },
       },
     ],  //routes
     extensions: extensionDependencies,
-    hangingProtocol: 'default',
-    sopClassHandlers: [ohif.sopClassHandler],
+    /** HangingProtocol used by the mode */
+    // Commented out to just use the most applicable registered hanging protocol
+    // The example is used for a grid layout to specify that as a preferred layout
+    hangingProtocol: ['@ohif/mnGrid'],
+    /** SopClassHandlers used by the mode */
+    sopClassHandlers: [ohif.sopClassHandler, segmentation.sopClassHandler, dicomRT.sopClassHandler],
   } //return
 };  //mode factory
 
