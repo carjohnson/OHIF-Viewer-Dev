@@ -42,57 +42,85 @@ function modeFactory({ modeConfiguration }) {
       // Init Default and SR ToolGroups
       initToolGroups(extensionManager, toolGroupService, commandsManager);
 
-      // const utilityModule = extensionManager.getModuleEntry(
-      //   '@ohif/extension-cornerstone.utilityModule.tools'
-      // );
+      toolbarService.register(toolbarButtons);
+      toolbarService.updateSection(toolbarService.sections.primary, [
+        'MeasurementTools',
+        'Zoom',
+        'Pan',
+        'TrackballRotate',
+        'WindowLevel',
+        'Capture',
+        'Layout',
+        'Crosshairs',
+        'MoreTools',
+      ]);
 
-      // const { toolNames, Enums } = utilityModule.exports;
+      toolbarService.updateSection(toolbarService.sections.viewportActionMenu.topLeft, [
+        'orientationMenu',
+        'dataOverlayMenu',
+      ]);
 
-      // const tools = {
-      //   active: [
-      //     {
-      //       toolName: toolNames.WindowLevel,
-      //       bindings: [{ mouseButton: Enums.MouseBindings.Primary }],
-      //     },
-      //     {
-      //       toolName: toolNames.Pan,
-      //       bindings: [{ mouseButton: Enums.MouseBindings.Auxiliary }],
-      //     },
-      //     {
-      //       toolName: toolNames.Zoom,
-      //       bindings: [{ mouseButton: Enums.MouseBindings.Secondary }],
-      //     },
-      //     {
-      //       toolName: toolNames.StackScroll,
-      //       bindings: [{ mouseButton: Enums.MouseBindings.Wheel }],
-      //     },
-      //   ],
-      //   passive: [
-      //     { toolName: toolNames.Length },
-      //     { toolName: toolNames.Bidirectional },
-      //     { toolName: toolNames.Probe },
-      //     { toolName: toolNames.EllipticalROI },
-      //     { toolName: toolNames.CircleROI },
-      //     { toolName: toolNames.RectangleROI },
-      //     { toolName: toolNames.StackScroll },
-      //     { toolName: toolNames.CalibrationLine },
-      //   ],
-      //   // enabled
-      //   enabled: [{ toolName: toolNames.ImageOverlayViewer }],
-      //   // disabled
-      // };
+      toolbarService.updateSection(toolbarService.sections.viewportActionMenu.bottomMiddle, [
+        'AdvancedRenderingControls',
+      ]);
 
-      // toolGroupService.createToolGroupAndAddTools('default', tools);
+      toolbarService.updateSection('AdvancedRenderingControls', [
+        'windowLevelMenuEmbedded',
+        'voiManualControlMenu',
+        'Colorbar',
+        'opacityMenu',
+        'thresholdMenu',
+      ]);
 
-      // toolbarService.register(toolbarButtons);
-      // toolbarService.updateSection('primary', [
-      //   'MeasurementTools',
-      //   'Zoom',
-      //   'WindowLevel',
-      //   'Pan',
-      //   'Layout',
-      //   'MoreTools',
-      // ]);
+      toolbarService.updateSection(toolbarService.sections.viewportActionMenu.topRight, [
+        'modalityLoadBadge',
+        'trackingStatus',
+        'navigationComponent',
+      ]);
+
+      toolbarService.updateSection(toolbarService.sections.viewportActionMenu.bottomLeft, [
+        'windowLevelMenu',
+      ]);
+
+      toolbarService.updateSection('MeasurementTools', [
+        'Length',
+        'Bidirectional',
+        'ArrowAnnotate',
+        'EllipticalROI',
+        'RectangleROI',
+        'CircleROI',
+        'PlanarFreehandROI',
+        'SplineROI',
+        'LivewireContour',
+      ]);
+
+      toolbarService.updateSection('MoreTools', [
+        'Reset',
+        'rotate-right',
+        'flipHorizontal',
+        'ImageSliceSync',
+        'ReferenceLines',
+        'ImageOverlayViewer',
+        'StackScroll',
+        'invert',
+        'Probe',
+        'Cine',
+        'Angle',
+        'CobbAngle',
+        'Magnify',
+        'CalibrationLine',
+        'TagBrowser',
+        'AdvancedMagnify',
+        'UltrasoundDirectionalTool',
+        'WindowLevelRegion',
+      ]);
+
+      customizationService.setCustomizations({
+        'panelSegmentation.disableEditing': {
+          $set: true,
+        },
+      });
+
     
     },
 
