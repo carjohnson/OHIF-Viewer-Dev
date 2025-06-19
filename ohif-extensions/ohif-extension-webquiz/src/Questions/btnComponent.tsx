@@ -1,21 +1,18 @@
 import React from "react";
-import { Button, Label } from '@ohif/ui';
+import { Button } from '@ohif/ui';
 
-function BtnComponent() {
+function BtnComponent( { annotationData }) {
 
   const handleButtonClick = () => {
-    alert('Button was clicked');
-
+    console.log('Number of annotations: ', annotationData.length);
+    window.parent.postMessage({ type: 'annotation', annotationdata: annotationData }, '*');
   }
 
     return (
       <div>
-        <div>
-          <Label>Quiz questions here</Label>
-        </div>
         <br/>
         <div>
-          <Button onClick={handleButtonClick}>Submit</Button>
+          <Button onClick={handleButtonClick}>Post</Button>
         </div>
    </div>
   );
