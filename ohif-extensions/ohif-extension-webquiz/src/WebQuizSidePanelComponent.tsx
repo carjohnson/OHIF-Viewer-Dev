@@ -6,7 +6,7 @@ import BtnComponent from './Questions/btnComponent';
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
 
-const l_annotationdata = [];
+const lo_annotationdata = [];
 
 /**
  *  Creating a React component to be used as a side panel in OHIF.
@@ -15,17 +15,17 @@ const l_annotationdata = [];
 function WebQuizSidePanelComponent() {
 
     cornerstone.eventTarget.addEventListener(cornerstoneTools.Enums.Events.ANNOTATION_COMPLETED, (o_annotationdata) => {
-        console.log("boom");
-        const bIsNotIncluded = l_annotationdata.findIndex(item => item === o_annotationdata.detail) === -1;
+        console.log("===> boom - annotation completed");
+        const bIsNotIncluded = lo_annotationdata.findIndex(item => item === o_annotationdata.detail) === -1;
         if (bIsNotIncluded) {
-            l_annotationdata.push(o_annotationdata.detail);
+            lo_annotationdata.push(o_annotationdata.detail);
         }
     })
 
     return (
         <div className="text-white w-full text-center">
             {`Web Quiz version : ${sqrt(9)}`}
-            <BtnComponent annotationData = {l_annotationdata} />
+            <BtnComponent annotationData = {lo_annotationdata} />
         </div>
     );
 }
