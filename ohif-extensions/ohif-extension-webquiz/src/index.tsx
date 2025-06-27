@@ -1,5 +1,9 @@
 import { id } from './id';
 import WebQuizSidePanelComponent from './WebQuizSidePanelComponent';
+import CreateCustomIcon from './CreateCustomIcon';
+import { Icons } from '@ohif/ui-next';
+
+CreateCustomIcon(Icons);
 
 /**
  * You can remove any of the following modules if you don't need them.
@@ -25,11 +29,12 @@ export default {
    * is the StudyBrowserPanel that is provided by the default extension in OHIF.
    */
   getPanelModule: ({ servicesManager, commandsManager, extensionManager }) => {
+    // console.log('🧪 In Panel Module Is baines-logo in Icons?', 'baines-logo' in Icons);
     return [
       {
         name: "webquiz",
-        iconname: "BainesLogo",
-        iconlabel: "",
+        iconName: 'baines-logo',
+        iconLabel: "Web Quiz",
         label: "Web Quiz",
         component: WebQuizSidePanelComponent
       }
