@@ -1,7 +1,7 @@
 import React from 'react';
 import { sqrt } from 'math.js'
 import BtnComponent from './Questions/btnComponent';
-// import ReadFile from './utils/ReadFile';
+import { useSystem } from '@ohif/core';
 
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
@@ -22,10 +22,36 @@ function WebQuizSidePanelComponent() {
         }
     })
 
+    const { servicesManager } = useSystem();
+    const { segmentationService } = servicesManager.services;
+    const lo_segmentations = segmentationService.getSegmentations();
+    console.log("===> num segs:", lo_segmentations.length);
+
+    const lo_allVolumes: { segmentation: number; segment: string; volume: number }[] = [];
+
+    lo_segmentations.forEach((segmentation, segIndex) => {
+        const segments = segmentation.segments;
+
+        Object.keys(segments).forEach((segmentKey) => {
+            const segment = segments[segmentKey];
+            const volume = segment?.cachedStats?.namedStats?.volume?.value;
+
+            if (volume !== undefined) {
+                lo_allVolumes.push({
+                    segmentation: segIndex + 1,
+                    segment: segmentKey,
+                    volume,
+                });
+            }
+        });
+    });
+
+    console.table(lo_allVolumes);    
+
     return (
         <div className="text-white w-full text-center">
-            {`Web Quiz version : ${sqrt(9)}`}
-            <BtnComponent annotationData = {lo_annotationdata} />
+            {`Web Quiz version : ${sqrt(4)}`}
+            <BtnComponent measurementData = {lo_annotationdata} segmentationData={lo_allVolumes} />
         </div>
     );
 }

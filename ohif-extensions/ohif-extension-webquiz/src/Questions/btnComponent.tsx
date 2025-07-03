@@ -1,11 +1,18 @@
 import React from "react";
 import { Button } from '@ohif/ui-next';
 
-function BtnComponent( { annotationData }) {
+
+function BtnComponent( { measurementData, segmentationData }) {
 
   const handleButtonClick = () => {
-    console.log('Number of annotations: ', annotationData.length);
-    window.parent.postMessage({ type: 'annotation', annotationdata: annotationData }, '*');
+    console.log('Number of measurements: ', measurementData.length);
+    console.log("Number of segmentations:", segmentationData.length)
+
+    window.parent.postMessage({
+      type: 'annotations', 
+      measurementdata: measurementData,
+      segmentationdata: segmentationData
+    }, '*');
 
   }
 
