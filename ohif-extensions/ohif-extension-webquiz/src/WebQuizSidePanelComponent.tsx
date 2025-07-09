@@ -23,6 +23,7 @@ function WebQuizSidePanelComponent() {
     const { servicesManager } = useSystem();
     const { segmentationService } = servicesManager.services;
 
+    //=====================
     // Annotation listener for measurements
     useEffect(() => {
         const handleAnnotation = (o_annotationdata) => {
@@ -46,45 +47,43 @@ function WebQuizSidePanelComponent() {
         };
     }, []);
 
-
-    // Initial Segmentation Fetch
+    //=====================
+    // Segmentation listener
     useEffect(() => {
-        const updateSegmentations = () => {
-        const lo_segmentations = segmentationService.getSegmentations();
-        console.log("===> num segs:", lo_segmentations.length);
-
-        const lo_allVolumes = [];
-
-        lo_segmentations.forEach((segmentation, segIndex) => {
-            const segments = segmentation.segments;
-
-            Object.keys(segments).forEach((segmentKey) => {
-            const segment = segments[segmentKey];
-            const volume = segment?.cachedStats?.namedStats?.volume?.value;
-
-            if (volume !== undefined) {
-                lo_allVolumes.push({
-                segmentation: segIndex + 1,
-                segment: segmentKey,
-                volume,
-                });
-            }
-            });
-        });
-
-        console.table(lo_allVolumes);
+        const lo_allVolumes = buildVolumeTable();
         setSegmentationData(lo_allVolumes);
-        };
-
-        // Initial fetch
-        updateSegmentations();
-
-        // Optional: subscribe to changes if OHIF exposes a pubSubService or similar
-        // Otherwise, you can trigger updateSegmentations manually when needed
-
-    }, [segmentationService]);
+        console.table(lo_allVolumes);
+        }, [segmentationService]);
 
 
+    //=====================
+    // helper functions
+    //=====================
+    // function to get the list of objects holding segment volume data
+    const buildVolumeTable = () => {
+    const lo_segmentations = segmentationService.getSegmentations();
+    const lo_allVolumes = [];
+
+    lo_segmentations.forEach((segmentation, segIndex) => {
+        const segments = segmentation.segments;
+
+        Object.keys(segments).forEach((segmentKey) => {
+        const segment = segments[segmentKey];
+        const volume = segment?.cachedStats?.namedStats?.volume?.value;
+
+        if (volume !== undefined) {
+            lo_allVolumes.push({
+            segmentation: segIndex + 1,
+            segment: segmentKey,
+            volume,
+            });
+        }
+        });
+    });
+
+    return lo_allVolumes;
+    };
+    //=====================
 
     return (
         <div className="text-white w-full text-center">
@@ -100,112 +99,5 @@ function WebQuizSidePanelComponent() {
 }
 
 
-
 export default WebQuizSidePanelComponent;
 
-
-/////////////////////////////////////////////////////////
-/* for future - to watch for segmentation updates:
-
-    
-    // Segmentation Update Listener
-    useEffect(() => {
-    const { EVENTS, subscribeDebounced, getSegmentation, getSegmentations } = segmentationService;
-
-    const { unsubscribe } = subscribeDebounced(
-        EVENTS.SEGMENTATION_DATA_MODIFIED,
-        ({ segmentationId }) => {
-        const updatedSegmentation = getSegmentation(segmentationId);
-        if (!updatedSegmentation) return;
-
-        // Option 1: Re-fetch all segmentations
-        const allSegmentations = getSegmentations();
-        setSegmentationData([...allSegmentations]);
-
-        // Option 2: Update just the one that changed (if you're tracking by ID)
-        // setSegmentationData(prev =>
-        //   prev.map(seg => seg.id === segmentationId ? updatedSegmentation : seg)
-        // );
-        }
-    );
-
-    return () => {
-        unsubscribe(); // Clean up on unmount
-    };
-    }, [segmentationService]);
-
-*/
-
-///////////////////////////////////////////////////////
-
-// helper function
-
-// const buildVolumeTable = () => {
-//   const lo_segmentations = segmentationService.getSegmentations();
-//   const lo_allVolumes = [];
-
-//   lo_segmentations.forEach((segmentation, segIndex) => {
-//     const segments = segmentation.segments;
-
-//     Object.keys(segments).forEach((segmentKey) => {
-//       const segment = segments[segmentKey];
-//       const volume = segment?.cachedStats?.namedStats?.volume?.value;
-
-//       if (volume !== undefined) {
-//         lo_allVolumes.push({
-//           segmentation: segIndex + 1,
-//           segment: segmentKey,
-//           volume,
-//         });
-//       }
-//     });
-//   });
-
-//   return lo_allVolumes;
-// };
-
-
-    // useEffect(() => {
-    //     const volumes = buildVolumeTable();
-    //     setSegmentationData(volumes);
-    //     }, [segmentationService]);
-
-    // // Segmentation Update Listener
-    // useEffect(() => {
-    // const { EVENTS, subscribeDebounced, getSegmentation, getSegmentations } = segmentationService;
-
-    // const { unsubscribe } = subscribeDebounced(
-    //     EVENTS.SEGMENTATION_DATA_MODIFIED,
-    //     ({ segmentationId }) => {
-    //     const updatedSegmentation = getSegmentation(segmentationId);
-    //     if (!updatedSegmentation) return;
-
-    //     // Option 1: Re-fetch all segmentations
-    //     const allSegmentations = getSegmentations();
-    //     setSegmentationData([...allSegmentations]);
-
-    //     // Option 2: Update just the one that changed (if you're tracking by ID)
-    //     // setSegmentationData(prev =>
-    //     //   prev.map(seg => seg.id === segmentationId ? updatedSegmentation : seg)
-    //     // );
-
-
-
-    //     }
-    // );
-
-    // useEffect(() => {
-    //     const { EVENTS, subscribeDebounced } = segmentationService;
-
-    //     const { unsubscribe } = subscribeDebounced(
-    //         EVENTS.SEGMENTATION_DATA_MODIFIED,
-    //         ({ segmentationId }) => {
-    //         const updatedVolumes = buildVolumeTable();
-    //         setSegmentationData(updatedVolumes);
-    //         }
-    //     );
-
-    //     return () => {
-    //         unsubscribe();
-    //     };
-    // }, [segmentationService]);
