@@ -5,8 +5,8 @@ import { useSystem } from '@ohif/core';
 
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
+import { annotation } from '@cornerstonejs/tools';
 
-const lo_annotationdata = [];
 
 /**
  *  Creating a React component to be used as a side panel in OHIF.
@@ -19,45 +19,147 @@ function WebQuizSidePanelComponent() {
     //  as the other components may be updating asynchronously and this
     //  component needs to be subscribed to those updates
 
-    const [segmentationData, setSegmentationData] = useState([]);
     const { servicesManager } = useSystem();
     const { segmentationService } = servicesManager.services;
+    
+    const [segmentationData, setSegmentationData] = useState([]);
+    const [annotationData, setAnnotationData] = useState([]);
+    const [isSaved, setIsSaved] = useState(true);
+
+
+
+    type AnnotationStats = Record<string, Record<string, unknown>>;     // generic for capture of cachedStats object
+
+
+    // Annotations listeners
+    useEffect(() => {
+        const handleAnnotationChange = () => {
+            const lo_annotationStats = getAnnotationsStats();
+            setAnnotationData(lo_annotationStats);
+
+            // const lengths = lo_annotationStats.flatMap((statsObj) => 
+            //     Object.values(statsObj)
+            //         .filter((stat): stat is { length: number } => typeof stat === 'object' && stat !== null && 'length' in stat)
+            //         .map((stat) => stat.length)
+            //     );
+
+            // console.log("LENGTHS ===>", lengths);
+        } ;
+
+        // Register listeners
+        // cornerstone.eventTarget.addEventListener(cornerstoneTools.Enums.Events.ANNOTATION_ADDED, handleAnnotationChange);
+        cornerstone.eventTarget.addEventListener(cornerstoneTools.Enums.Events.ANNOTATION_MODIFIED, handleAnnotationChange);
+        cornerstone.eventTarget.addEventListener(cornerstoneTools.Enums.Events.ANNOTATION_REMOVED, handleAnnotationChange);
+        cornerstone.eventTarget.addEventListener(cornerstoneTools.Enums.Events.ANNOTATION_COMPLETED, handleAnnotationChange);
+
+
+        // Cleanup on unmount
+        return() => {
+            // cornerstone.eventTarget.removeEventListener(cornerstoneTools.Enums.Events.ANNOTATION_ADDED, handleAnnotationChange);
+            cornerstone.eventTarget.removeEventListener(cornerstoneTools.Enums.Events.ANNOTATION_MODIFIED, handleAnnotationChange);
+            cornerstone.eventTarget.removeEventListener(cornerstoneTools.Enums.Events.ANNOTATION_REMOVED, handleAnnotationChange);
+            cornerstone.eventTarget.removeEventListener(cornerstoneTools.Enums.Events.ANNOTATION_COMPLETED, handleAnnotationChange);
+        }
+    }, [] );
 
     //=====================
-    // Annotation listener for measurements
+    // Segmentation listener
+
+
+    // don't rely on segmentationService. 
+    // These useEffects are tapping into the events for a more immediate response
+    // useEffect(() => {
+    //     const lo_allVolumes = buildVolumeTable();
+    //     setSegmentationData(lo_allVolumes);
+    //     console.table(lo_allVolumes);
+    //     }, [segmentationService]);
+    // Refactored ... ===>
     useEffect(() => {
-        const handleAnnotation = (o_annotationdata) => {
-        console.log("===> boom - annotation completed");
-        const bIsNotIncluded = lo_annotationdata.findIndex(item => item === o_annotationdata.detail) === -1;
-        if (bIsNotIncluded) {
-            lo_annotationdata.push(o_annotationdata.detail);
-        }
+        const handleSegmentationChange = () => {
+            const lo_allVolumes = buildVolumeTable();
+            setSegmentationData(lo_allVolumes);
+            console.table(lo_allVolumes);
         };
 
         cornerstone.eventTarget.addEventListener(
-        cornerstoneTools.Enums.Events.ANNOTATION_COMPLETED,
-        handleAnnotation
+            cornerstoneTools.Enums.Events.SEGMENTATION_ADDED,
+            handleSegmentationChange
+        );
+
+        cornerstone.eventTarget.addEventListener(
+            cornerstoneTools.Enums.Events.SEGMENTATION_DELETED,
+            handleSegmentationChange
+        );
+
+        cornerstone.eventTarget.addEventListener(
+            cornerstoneTools.Enums.Events.SEGMENTATION_MODIFIED,
+            handleSegmentationChange
+        );
+
+        cornerstone.eventTarget.addEventListener(
+            cornerstoneTools.Enums.Events.SEGMENTATION_DATA_MODIFIED,
+            handleSegmentationChange
         );
 
         return () => {
-        cornerstone.eventTarget.removeEventListener(
-            cornerstoneTools.Enums.Events.ANNOTATION_COMPLETED,
-            handleAnnotation
-        );
+            cornerstone.eventTarget.removeEventListener(
+            cornerstoneTools.Enums.Events.SEGMENTATION_ADDED,
+            handleSegmentationChange
+            );
+            cornerstone.eventTarget.removeEventListener(
+            cornerstoneTools.Enums.Events.SEGMENTATION_DELETED,
+            handleSegmentationChange
+            );
+            cornerstone.eventTarget.removeEventListener(
+            cornerstoneTools.Enums.Events.SEGMENTATION_MODIFIED,
+            handleSegmentationChange
+            );
+            cornerstone.eventTarget.removeEventListener(
+            cornerstoneTools.Enums.Events.SEGMENTATION_DATA_MODIFIED,
+            handleSegmentationChange
+            );
         };
     }, []);
 
     //=====================
-    // Segmentation listener
+    // watch for changes to the state properties
     useEffect(() => {
-        const lo_allVolumes = buildVolumeTable();
-        setSegmentationData(lo_allVolumes);
-        console.table(lo_allVolumes);
-        }, [segmentationService]);
+        if (annotationData.length > 0) {
+            setIsSaved(false);
+            // console.log(' Annotation Change');
+        }
+    }, [annotationData]);
 
+    useEffect(() => {
+        if (segmentationData.length > 0) {
+            setIsSaved(false)
+            // console.log(' Segmentation Change');
+        }
+    }, [segmentationData]);
 
+    ////////////////////////////////////////////
     //=====================
     // helper functions
+    //=====================
+    ////////////////////////////////////////////
+
+    //=====================
+    // function to get list of all cached annotation stats
+    const getAnnotationsStats = (): AnnotationStats[] => {
+        const lo_annotationStats: AnnotationStats[] = [];
+        const allAnnotations = annotation.state.getAllAnnotations();
+
+        allAnnotations.forEach((ann, index) => {
+            const stats = ann.data?.cachedStats as AnnotationStats;
+            if (stats && Object.keys(stats).length > 0) {
+                lo_annotationStats.push(stats);
+                // console.log("ANNOTATION Tool ===>", ` Annotation ${index}:`, ann.data.cachedStats);
+            }
+        });
+
+        return lo_annotationStats;
+    };
+
     //=====================
     // function to get the list of objects holding segment volume data
     const buildVolumeTable = () => {
@@ -80,21 +182,37 @@ function WebQuizSidePanelComponent() {
         }
         });
     });
-
     return lo_allVolumes;
     };
-    //=====================
 
+    //=====================
+    const refreshData = () => {
+        const lo_annotationStats = getAnnotationsStats();
+        setAnnotationData(lo_annotationStats);
+        const lo_allVolumes = buildVolumeTable();
+        setSegmentationData(lo_allVolumes);
+        console.table(lo_allVolumes);
+        return [lo_annotationStats, lo_allVolumes]; // ensures stats are updated before continuing
+    };
+
+
+
+     ////////////////////////////////////////////
+    //=====================
+    // return
+    //=====================
+    ////////////////////////////////////////////
     return (
         <div className="text-white w-full text-center">
         {`Web Quiz version : ${sqrt(4)}`}
         <BtnComponent
-            measurementData={lo_annotationdata}
+            measurementData={annotationData}
             segmentationData={segmentationData}
+            refreshData={refreshData}
+            setIsSaved={setIsSaved}
         />
         </div>
-    );
-
+    );    
 
 }
 
