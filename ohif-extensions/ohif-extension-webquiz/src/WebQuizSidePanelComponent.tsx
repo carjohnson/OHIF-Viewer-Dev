@@ -23,6 +23,7 @@ function WebQuizSidePanelComponent() {
     const { segmentationService } = servicesManager.services;
     
     const [segmentationData, setSegmentationData] = useState([]);
+    const [volumeData, setVolumeData] = useState([]);
     const [annotationData, setAnnotationData] = useState([]);
     const [isSaved, setIsSaved] = useState(true);
 
@@ -37,6 +38,7 @@ function WebQuizSidePanelComponent() {
             const lo_annotationStats = getAnnotationsStats();
             setAnnotationData(lo_annotationStats);
 
+            ////// for debug /////
             // const lengths = lo_annotationStats.flatMap((statsObj) => 
             //     Object.values(statsObj)
             //         .filter((stat): stat is { length: number } => typeof stat === 'object' && stat !== null && 'length' in stat)
@@ -69,15 +71,15 @@ function WebQuizSidePanelComponent() {
     // don't rely on segmentationService. 
     // These useEffects are tapping into the events for a more immediate response
     // useEffect(() => {
-    //     const lo_allVolumes = buildVolumeTable();
-    //     setSegmentationData(lo_allVolumes);
+    //     const lo_allVolumes = getSegmentationStats();
+    //     setVolumeData(lo_allVolumes);
     //     console.table(lo_allVolumes);
     //     }, [segmentationService]);
     // Refactored ... ===>
     useEffect(() => {
         const handleSegmentationChange = () => {
-            const lo_allVolumes = buildVolumeTable();
-            setSegmentationData(lo_allVolumes);
+            const [lo_segmentations, lo_allVolumes] = getSegmentationStats();
+            setVolumeData(lo_allVolumes);
             console.table(lo_allVolumes);
         };
 
@@ -131,11 +133,19 @@ function WebQuizSidePanelComponent() {
     }, [annotationData]);
 
     useEffect(() => {
+        if (volumeData.length > 0) {
+            setIsSaved(false)
+            // console.log(' Volume Change');
+        }
+    }, [volumeData]);
+
+    useEffect(() => {
         if (segmentationData.length > 0) {
             setIsSaved(false)
-            // console.log(' Segmentation Change');
+            // console.log(' Volume Change');
         }
     }, [segmentationData]);
+
 
     ////////////////////////////////////////////
     //=====================
@@ -161,8 +171,9 @@ function WebQuizSidePanelComponent() {
     };
 
     //=====================
-    // function to get the list of objects holding segment volume data
-    const buildVolumeTable = () => {
+    // function to get the list of objects holding segmentations and
+    //  extract volume data
+    const getSegmentationStats = () => {
     const lo_segmentations = segmentationService.getSegmentations();
     const lo_allVolumes = [];
 
@@ -182,17 +193,18 @@ function WebQuizSidePanelComponent() {
         }
         });
     });
-    return lo_allVolumes;
+    return [lo_segmentations, lo_allVolumes];
     };
 
     //=====================
     const refreshData = () => {
         const lo_annotationStats = getAnnotationsStats();
         setAnnotationData(lo_annotationStats);
-        const lo_allVolumes = buildVolumeTable();
-        setSegmentationData(lo_allVolumes);
+        const [lo_segmentations, lo_allVolumes] = getSegmentationStats();
+        setVolumeData(lo_allVolumes);
+        setSegmentationData(lo_segmentations);
         console.table(lo_allVolumes);
-        return [lo_annotationStats, lo_allVolumes]; // ensures stats are updated before continuing
+        return [lo_annotationStats, lo_allVolumes, lo_segmentations]; // ensures stats are updated before continuing
     };
 
 
